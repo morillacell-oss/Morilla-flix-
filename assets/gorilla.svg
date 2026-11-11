@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 112" role="img" aria-label="Gorila vermelho de perfil apoiado nas quatro patas">
+<defs><linearGradient id="r" x1="0" x2="1"><stop stop-color="#b7000c"/><stop offset="1" stop-color="#ff2634"/></linearGradient></defs>
+<path fill="url(#r)" d="M7 92c4-7 11-15 14-26 3-11 5-24 13-34 8-11 21-17 38-16 13 0 24 6 31 15 7-3 14-1 18 4l10 1 13 12-2 9-5 9-13 1-5 9 2 15 7 8v5h-24l-6-9-5-22-8-9-7 9 1 18 5 8v5H61l-7-10 3-23-10 1-7 13-6 20-7 8H8l-4-6 10-11 5-28-5 11-7 6-7-6 7-8z"/>
+<path fill="#070707" d="M119 48c9-5 17-2 19 4l-4 8-13 1-5-6z"/>
+<path fill="#070707" d="M48 34c15-5 33-3 44 12-13-8-25-9-38-4-12 4-15 3-6-8z" opacity=".3"/>
+<ellipse cx="125" cy="43" rx="3.1" ry="2.3" fill="#fff"/><circle cx="126" cy="43" r="1.2" fill="#0c0c0c"/>
+<path fill="none" stroke="#ff5964" stroke-width="1.5" stroke-linecap="round" opacity=".75" d="M38 32c8-11 20-15 35-13"/>
+</svg>
