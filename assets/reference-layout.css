@@ -1,0 +1,103 @@
+/* Morilla Flix 3.0 — layout inspirado na referência fornecida pelo proprietário do projeto */
+:root{--red:#e50914;--muted:#bdbdc2;--line:#1b1b20}
+*,*::before,*::after{box-sizing:border-box}
+body{background:#000}
+header{position:sticky;top:0;z-index:35;width:100%;min-height:77px;height:77px;display:flex;align-items:center;justify-content:space-between;padding:8px clamp(20px,3.4vw,56px);background:#050506;border:0;box-shadow:0 2px 25px #000d;gap:20px}
+.brand{min-width:max-content;gap:7px}
+.brand .gorilla-mark{width:66px;height:60px;margin:0;filter:drop-shadow(0 0 6px rgba(219,0,20,.3))}
+.brandname{font-family:Outfit,sans-serif;font-weight:900;letter-spacing:-1px;line-height:.84;transform:none;font-size:clamp(23px,2.25vw,34px)}
+.brandname em{font-size:1.18em;letter-spacing:-1px}
+header nav{order:0;width:auto;position:static;height:auto;display:flex;flex:1;justify-content:center;gap:12px;padding:0;border:0;box-shadow:none;background:transparent;backdrop-filter:none}
+header .nav{border:0;font:700 13px Outfit,sans-serif;display:inline-flex;align-items:center;justify-content:center;padding:13px 15px!important;color:#bfc0c7;min-height:42px;white-space:nowrap;border-radius:8px;flex:none}
+header .nav.active{background:linear-gradient(180deg,rgba(125,5,13,.92),#3a0005);box-shadow:0 0 0 1px #971422,0 0 22px #ac071347,inset 0 -2px #e50914;color:white}
+header .nav:hover{color:white}
+header .nav:before{display:none!important}
+.headeractions{gap:12px;flex:none}
+.round{border:none;background:transparent;width:40px;height:40px;color:#fff;font-size:29px}
+.profilebtn{background:linear-gradient(125deg,#44080d,#200609);border:1px solid #a02b38;border-radius:99px;color:#fff;min-height:39px;font:800 12px Outfit;letter-spacing:.05em;padding:10px 15px}
+.hero{min-height:0;height:clamp(470px,42vw,660px);padding:65px clamp(26px,6.3vw,110px) 82px;display:flex;align-items:center;isolation:isolate;background:#050505}
+.heroimage{background-position:67% center!important;background-size:cover!important;background-repeat:no-repeat;filter:saturate(1.12) contrast(1.08);transform:none}
+.hero:before{display:none}
+.hero:after{background:linear-gradient(90deg,#000 1%,rgba(0,0,0,.98) 12%,rgba(0,0,0,.82) 32%,rgba(0,0,0,.24) 67%,rgba(0,0,0,.06) 100%),linear-gradient(0deg,#000 0%,transparent 25%,transparent 82%,#0004 100%)}
+.herotext{max-width:min(620px,59vw);z-index:2}
+.hero .eyebrow{letter-spacing:1.2px;font-size:12px;color:#ff5c6a;font-weight:900}
+.hero .eyebrow:before{display:none}
+.herotitle{font:900 clamp(55px,6.4vw,110px)/.9 Outfit,sans-serif;letter-spacing:-3px;text-shadow:0 8px 30px #000b;margin:12px 0 25px}
+.hero .meta{font:700 12px Outfit,sans-serif;gap:12px}
+.hero p{font:500 15px/1.65 "DM Sans",sans-serif;color:#eeeef0;max-width:535px;margin:19px 0 25px}
+.hero .actions{gap:9px}
+.btn{min-height:43px;border-radius:6px;letter-spacing:0;font:800 13px Outfit,sans-serif;padding:10px 16px}
+.btn.red{background:#e50914;box-shadow:0 0 22px #e5091438}
+.btn:not(.red){background:#29292d}
+.btn.outline{border-color:#44444a}
+.hero+.content{margin-top:-43px;position:relative;z-index:3}
+.content{padding:0 clamp(20px,3.7vw,66px)}
+.section{margin:0 0 31px}
+.heading{font:800 clamp(21px,2vw,28px) Outfit,sans-serif;letter-spacing:-.3px;margin-bottom:14px}
+.heading:before{height:24px;width:4px;border-radius:0}
+.shelf{grid-auto-columns:clamp(175px,15.4vw,255px);gap:10px;padding:1px 0 15px;scrollbar-width:none;scroll-snap-type:x mandatory}
+.shelf::-webkit-scrollbar{display:none}
+.shelf .movie{min-height:0}
+.movie{border:1px solid #1e1e20;border-radius:7px;box-shadow:none;background:#0c0c0e;scroll-snap-align:start;transition:transform .24s,border-color .24s}
+.movie:hover{transform:scale(1.04);z-index:4;border-color:#ae1625}
+.movie:after{background:linear-gradient(0deg,#0006,transparent 32%)}
+.movie .thumb{aspect-ratio:16/10;object-fit:cover;object-position:center 32%;background:linear-gradient(135deg,#230007,#111)}
+.movie .details{padding:9px 11px 11px;min-height:54px}
+.movie h3{font-size:13px;margin:0 0 5px;font-weight:800}
+.movie p{font-size:10px;color:#a7a7ad}
+.chip{top:8px;left:8px;padding:5px 7px;background:#b80915;font-size:9px;border-radius:2px}
+.experience{display:none}
+.premium-intro{display:none}
+.gridmovies .movie .thumb{aspect-ratio:16/10}
+.gridmovies{grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:12px}
+footer{padding-top:38px}
+.streamhero-glow{position:absolute;inset:0;pointer-events:none}
+.quality-label{display:inline-flex;padding:4px 7px;border-radius:3px;border:1px solid #9996;color:#eee;font-size:11px;font-weight:800}
+.shelf .movie[data-is-series="true"] .chip{background:#671b40}
+@media(min-width:1200px){
+.hero{height:min(43vw,650px)}
+.hero+.content{margin-top:-42px}
+}
+@media(max-width:860px) and (min-width:701px){
+header{gap:12px;padding-inline:14px}.brand .gorilla-mark{width:48px;height:45px}.brandname{font-size:21px}header nav{gap:2px}.nav{font-size:11px!important;padding:9px 7px!important}.herotext{max-width:62vw}
+}
+@media(max-width:700px){
+header{height:65px;min-height:65px;display:flex;position:sticky;top:0;z-index:45;align-items:center;flex-wrap:nowrap;padding:5px 15px;overflow:visible;background:#050506;gap:9px;border-bottom:1px solid #202025}
+.brand{gap:6px}.brand .gorilla-mark{width:48px;height:44px;margin:0}.brandname{font-size:22px}
+.headeractions{margin-left:auto;gap:5px}
+.round{width:37px;height:36px;font-size:23px;background:transparent}
+.profilebtn{padding:7px 12px;min-height:35px;font-size:10px}
+header nav{position:absolute;left:0;right:0;top:65px;bottom:auto;display:flex;justify-content:space-evenly;gap:0;height:52px;width:100%;padding:0 5px;border:none;border-bottom:1px solid #29292d;border-radius:0;background:#080809;box-shadow:0 8px 18px #000b;z-index:45;overflow-x:auto;overflow-y:hidden}
+header .nav{font-size:11px!important;min-height:47px;height:47px;flex:1;white-space:nowrap;padding:9px 2px!important;border-radius:0;background:transparent!important;box-shadow:none!important;color:#a6a6ae}
+header .nav.active{color:#fff;border-bottom:2px solid #e50914;background:linear-gradient(0deg,#5b000b88,transparent 70%)!important}
+.hero{margin-top:52px;height:560px;min-height:0;padding:0 18px 36px;align-items:end;position:relative}
+.heroimage{inset:0;background-size:cover!important;background-position:57% 19%!important;filter:saturate(1.13) contrast(1.07)}
+.hero:after{background:linear-gradient(0deg,#000 0%,#000d 20%,rgba(0,0,0,.43) 49%,rgba(0,0,0,.02) 77%,#0004 100%),linear-gradient(90deg,#0003,transparent 85%)}
+.herotext{max-width:none;width:100%}
+.hero .eyebrow{font-size:10px;letter-spacing:1.5px;margin:0 0 7px}
+.herotitle{font-size:clamp(46px,12vw,66px);line-height:.92;letter-spacing:-2.5px;margin:8px 0 14px}
+.hero .meta{font-size:11px;gap:8px;color:#fff}
+.hero p{font-size:12px;line-height:1.5;margin:14px 0 17px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;max-width:100%}
+.hero .actions{display:flex;flex-wrap:wrap;gap:8px}
+.hero .actions .btn{min-height:42px;font-size:11px;padding:10px 12px;flex:1;white-space:nowrap}
+.hero .actions .btn:last-child{grid-column:auto;flex:0 0 auto;width:100%;min-height:28px;justify-content:start;padding:4px 0;color:#ccc;background:transparent!important;border:0}
+.hero+.content{margin-top:-6px;padding-top:0}
+.content{padding-left:14px;padding-right:14px}
+.heading{font-size:19px;gap:8px;margin-bottom:11px}
+.heading:before{height:20px;width:3px}
+.section{margin:0 0 24px}
+.shelf{grid-auto-columns:clamp(152px,47vw,215px);gap:9px;padding-bottom:9px}
+.movie{border-radius:7px}.movie .thumb{aspect-ratio:16/10}.movie .details{padding:8px 9px;min-height:52px}
+.movie h3{font-size:13px}.movie p{font-size:10px}
+.chip{top:6px;left:6px;padding:4px 5px;font-size:8px}
+.gridmovies{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.gridmovies .movie .details{padding:8px}
+.sectionheader{margin:28px 0 12px}
+.sectionheader h1{font-size:34px!important}
+.searchbar{margin-top:15px}.searchbar input{min-height:47px;font-size:13px}
+.filterrow{gap:6px}.filter{padding:9px 13px}
+.detailshero{grid-template-columns:1fr}.detailshero h1{font-size:36px}
+footer{padding:26px 18px 65px;font-size:10px}
+.modalwrap{padding:10px;align-items:center}.modal{max-height:91vh;border-radius:14px;padding:13px}
+}
+@media(max-width:375px){header .nav{font-size:10px!important}.brandname{font-size:19px}.hero{height:535px}.herotitle{font-size:44px}}
