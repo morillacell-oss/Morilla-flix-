@@ -73,9 +73,14 @@ function tmdbImage(path,size="w780"){return path && /^\/[A-Za-z0-9_.-]+\.(?:jpg|
 function tmdbCard(t){
  const key=t.media_type+":"+t.id;
  const genre=t.media_type==="tv"?"SÉRIE":"FILME";
- return '<button class="movie tmdb-movie" data-tmdb="'+safe(key)+'"><img class="thumb" loading="lazy" src="'+safe(tmdbImage(t.backdrop_path||t.poster_path))+'" alt="Capa de '+safe(t.title)+'" onerror="this.onerror=null;this.src=\'assets/poster-fallback.svg\'"><span class="chip">'+genre+'</span><div class="details"><h3>'+safe(t.title)+'</h3><p>'+safe((t.release_date||"").slice(0,4))+' · Informações TMDB</p></div></button>';
+ const badge=t.vote_average>0?'<span class="badgerating">★ '+Number(t.vote_average).toFixed(1)+'</span>':"";
+ return '<button class="movie tmdb-movie" data-tmdb="'+safe(key)+'"><img class="thumb" loading="lazy" src="'+safe(tmdbImage(t.backdrop_path||t.poster_path))+'" alt="Capa de '+safe(t.title)+'" onerror="this.onerror=null;this.src=\'assets/poster-fallback.svg\'"><span class="chip">'+genre+'</span>'+badge+'<div class="details"><h3>'+safe(t.title)+'</h3><p>'+safe((t.release_date||"").slice(0,4))+' · Informações TMDB</p></div></button>';
 }
-function tmdbShelf(label,list){return list.length?'<section class="section tmdb-shelf"><h2 class="heading">'+safe(label)+'</h2><div class="shelf">'+list.map(tmdbCard).join("")+'</div></section>':"";}
+function shelfFrame(items){
+ return '<div class="shelf-frame"><button class="shelf-arrow prev" data-scroll="left" aria-label="Deslizar títulos anteriores">‹</button><div class="shelf">'+items+'</div><button class="shelf-arrow next" data-scroll="right" aria-label="Ver mais títulos">›</button></div>';
+}
+function tmdbShelf(label,list){return list.length?'<section class="section tmdb-shelf"><h2 class="heading">'+safe(label)+'</h2>'+shelfFrame(list.map(tmdbCard).join(""))+'</section>':"";}
+
 function tmdbCredits(){return '<div class="tmdb-credits"><a target="_blank" rel="noopener noreferrer" href="https://www.themoviedb.org"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB — The Movie Database" width="90"></a><p>This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Os títulos desta seção são informativos. A exibição de filmes completos exige licença própria.</p></div>';}
 async function loadTmdb(){
  if(tmdbLoaded)return;
@@ -123,9 +128,12 @@ function mediaCard(t){
  const score=Object.values(store.data).flatMap(x=>x.ratings?.[t.id]?[x.ratings[t.id]]:[]);
  const rate=score.length?(score.reduce((a,b)=>a+b,0)/score.length).toFixed(1):"";
  const hasVideo=Boolean(t.video_url)||episodes.some(e=>e.title_id===t.id && e.video_url);
- return '<article class="movie" data-is-series="'+(t.kind==="series"?"true":"false")+'"><img class="thumb" loading="lazy" src="'+safe(img(t.poster_url||t.backdrop_url))+'" alt="Capa de '+safe(t.name)+'" onerror="this.onerror=null;this.src=\'assets/poster-fallback.svg\'"><span class="chip">'+(t.kind==="series"?"COLEÇÃO":"FILME")+'</span>'+(rate?'<span class="badgerating">★ '+rate+'</span>':"")+'<div class="details"><h3>'+safe(t.name)+'</h3><p>'+safe(t.release_year||"")+' · '+safe(t.genre)+'</p></div><button class="poster-open" data-title="'+safe(t.id)+'" aria-label="Ver detalhes de '+safe(t.name)+'"></button>'+(hasVideo?'<button class="poster-play" data-watch="'+safe(t.id)+'" aria-label="Assistir '+safe(t.name)+'">▶</button>':"")+'</article>';
+ const progress=pdata().history[t.id]?.percent||0;
+ const progressBar=progress>1&&progress<100?'<div class="poster-progress"><span style="width:'+Math.round(progress)+'%"></span></div>':"";
+ return '<article class="movie" data-is-series="'+(t.kind==="series"?"true":"false")+'"><img class="thumb" loading="lazy" src="'+safe(img(t.poster_url||t.backdrop_url))+'" alt="Capa de '+safe(t.name)+'" onerror="this.onerror=null;this.src=\'assets/poster-fallback.svg\'"><span class="chip">'+(t.kind==="series"?"COLEÇÃO":"FILME")+'</span>'+(rate?'<span class="badgerating">★ '+rate+'</span>':"")+'<div class="details"><h3>'+safe(t.name)+'</h3><p>'+safe(t.release_year||"")+' · '+safe(t.genre)+'</p></div><button class="poster-open" data-title="'+safe(t.id)+'" aria-label="Ver detalhes de '+safe(t.name)+'"></button>'+(hasVideo?'<button class="poster-play" data-watch="'+safe(t.id)+'" aria-label="Assistir '+safe(t.name)+'">▶</button>':"")+progressBar+'</article>';
 }
-function shelf(label,list){return list.length?'<section class="section"><h2 class="heading">'+safe(label)+'</h2><div class="shelf">'+list.map(mediaCard).join("")+'</div></section>':"";}
+function shelf(label,list){return list.length?'<section class="section"><h2 class="heading">'+safe(label)+'</h2>'+shelfFrame(list.map(mediaCard).join(""))+'</section>':"";}
+
 function sponsorBlock(){const s=sponsors.find(x=>x.is_active);if(!s)return"";const link=urlSafe(s.destination_url);return '<section class="sponsor"><div><span class="sptag">CONTEÚDO PATROCINADO</span><h3>'+safe(s.heading)+'</h3><p>'+safe(s.description)+'</p></div>'+(link?'<a class="btn small outline" target="_blank" rel="noopener noreferrer sponsored" href="'+safe(link)+'">Conhecer patrocinador ↗</a>':"")+'</section>';}
 function home(){if(!featured)return '<div class="content"><div class="alertbox"><div class="eyebrow">MORILLA FLIX</div><h2>'+(loadError?'Não foi possível carregar os filmes':'O catálogo está sendo preparado')+'</h2><p>'+(loadError?'Erro de conexão: '+safe(loadError)+' — tente novamente em instantes.':'Ainda não há filmes publicados.')+'</p><button class="btn red" id="retryCatalog">↻ Tentar novamente</button></div></div>';const picks=[...titles.filter(x=>x.featured),...titles.filter(x=>!x.featured&&x.kind==="movie")].slice(0,4);const f=picks[featuredIndex%picks.length]||featured;const cont=titles.filter(t=>pdata().history[t.id]?.position>5);const recom=[...titles].sort((a,b)=>recommendScore(b)-recommendScore(a));if(tmdbFeed.length){
  const top=tmdbFeed.find(x=>x.backdrop_path)||tmdbFeed[0],key=top.media_type+":"+top.id;
@@ -262,6 +270,11 @@ if(el.dataset.nav){navigate(el.dataset.nav);return;}
 if(el.dataset.title){openDetails(el.dataset.title);return;}
 if(el.dataset.tmdb){tmdbDetails(el.dataset.tmdb);return;}
 if(el.dataset.trailer){await playTmdbTrailer(el.dataset.trailer);return;}
+if(el.dataset.scroll){
+ const shelf=el.closest(".shelf-frame")?.querySelector(".shelf");
+ if(shelf)shelf.scrollBy({left:shelf.clientWidth*(el.dataset.scroll==="right"?.9:-.9),behavior:"smooth"});
+ return;
+}
 if(el.dataset.watch){play(el.dataset.watch);return;}
 if(el.dataset.episode){let e=episodes.find(x=>x.id===el.dataset.episode);if(e)play(e.title_id,e.id);return;}
 if(el.dataset.watchEpisode){play(el.dataset.titleId,el.dataset.watchEpisode);return;}
