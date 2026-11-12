@@ -1,26 +1,76 @@
-# MORILLA FLIX
-Plataforma de streaming demonstrativa, responsiva e aberta para assistir a vídeos próprios ou licenciados. Identidade preta (#000) com vermelho (#e50914) e gorila de perfil.
+# 🦍 MORILLA FLIX — Cinema aberto, experiência premium
 
-## Stack
-Site estático (HTML/CSS/JavaScript módulos) conectado ao Supabase por chave **publishable**. GitHub é o código-fonte e Supabase armazena o catálogo.
+Site responsivo com identidade preta e vermelha, logo de gorila de perfil, interface inspirada em plataformas de streaming e player de vídeos autorizados.
 
-## Recursos
-Catálogo, pesquisa, filtros, filmes e episódios com player HTML5, histórico e continuar assistindo, perfis locais por navegador, avaliações locais, favoritos, recomendações baseadas em preferências, espaço discreto de patrocinadores e painel protegido com Supabase Auth + RLS.
+**Produção:** https://morilla-flix-rho.vercel.app  
+**GitHub:** https://github.com/morillacell-oss/Morilla-flix-  
+**Supabase:** projeto `MorillaFlix`.
 
-## Configuração
-1. Projeto Supabase: `MorillaFlix`. O script de banco encontra-se em `supabase/schema.sql` e já foi aplicado.
-2. Para usar o painel, crie um usuário em **Authentication → Users** do Supabase e depois cadastre seu UUID em **SQL Editor**:
-   `insert into public.admin_users(user_id) values ('UUID-DO-USUARIO');`
-   Somente usuários presentes em `admin_users` podem alterar o catálogo. A senha nunca deve ir ao repositório.
-3. Publique como site estático no Vercel: Framework preset **Other**, sem build command, diretório de saída `.`. Não é necessário ambiente de servidor.
-4. Adicione conteúdo somente com direitos de exibição. Para MP4/WebM informe uma URL HTTPS direta; para vídeos oficiais autorizados também aceita URLs YouTube.
-5. Visitantes não precisam entrar. Os perfis, favoritos, histórico e avaliações são armazenados em `localStorage` (não sincronizam entre aparelhos). O painel usa autenticação apenas de administradores.
+## O que funciona
 
-## Catálogo demonstrativo
-Sintel, Big Buck Bunny, Tears of Steel e Elephants Dream são obras abertas da Blender Foundation, com atribuição exibida nos detalhes. A fonte de vídeo para a demonstração é o bucket de amostras de vídeos do Google. A disponibilidade das URLs públicas depende do provedor de origem; não há hospedagem própria de vídeo.
+- Catálogo Supabase com 11 títulos (8 filmes e 3 coleções de curtas) e 10 episódios de demonstração.
+- Filme completo por MP4 HTTPS ou conteúdo oficial incorporado via YouTube, conforme permissão de exibição.
+- Player amplo, controles nativos, voltar/avançar 10s, velocidade, tela cheia, Picture-in-Picture quando disponível, seleção de episódios, retomar de onde parou.
+- Botão de reproduzir nas capas de filmes liberados, fileiras com setas no desktop e rolagem por toque no celular, barra de progresso da sessão.
+- Perfis locais, favoritos, avaliações pessoais e recomendações simples baseadas no comportamento no mesmo navegador, sem login para visitantes.
+- Painel administrativo com **Supabase Auth e RLS** para cadastrar/alterar títulos, temporadas, episódios e patrocínios.
+- Integração TMDB **temporária de demonstração não comercial**, com imagens, sinopses, tendências e **trailers oficiais disponíveis via YouTube**, sem oferecer filmes comerciais completos.
 
-## Segurança
-RLS habilitado em todas as tabelas. `anon` apenas lê títulos/episódios publicados e patrocínios ativos. Escrita reservada a usuários cadastrados em `admin_users`. Somente chave pública de projeto é usada no navegador. Nunca exponha secret/service_role.
+## Como assistir
 
-## Limitações da primeira versão
-Não existe cobrança, gerenciamento de direitos digitais ou sincronização de perfis; anúncios são cards não intrusivos e não há rede de anúncios integrada. Nenhuma reprodução de catálogos comerciais sem licença.
+1. Acesse o endereço de produção.
+2. No banner ou nas capas identificadas como conteúdo liberado, clique em **Assistir** (triângulo vermelho).
+3. No player, use o controle do próprio vídeo, selecione outro episódio ou clique em Tela cheia.
+4. Se o provedor externo não responder, o botão **Fonte oficial** abre a página/arquivo original.
+5. O ponto de reprodução é salvo **no navegador** (sem sincronização entre dispositivos).
+
+**A disponibilidade dos arquivos MP4/YouTube depende do provedor externo.** Os links diretos de Sintel, Spring, Tears of Steel e Sprite Fright foram substituídos por links do Blender Video; a compatibilidade final precisa ser conferida no navegador do visitante.
+
+## Painel administrativo — falta configurar a conta proprietária
+
+Visitantes **não precisam de login**. O administrador precisa cadastrar uma conta própria.
+
+1. No Supabase, abra: https://supabase.com/dashboard/project/bpipdcbwlllwnvolorfp/auth/users
+2. Crie seu usuário com e-mail e senha. Não compartilhe a senha no ChatGPT.
+3. Copie seu UUID (User ID) e no [SQL Editor](https://supabase.com/dashboard/project/bpipdcbwlllwnvolorfp/sql/new) execute, substituindo o valor:
+
+```sql
+insert into public.admin_users (user_id)
+values ('UUID-DA-SUA-CONTA')
+on conflict (user_id) do nothing;
+```
+
+4. No rodapé do Morilla Flix, clique em **Administração** e use seu e-mail e senha.
+
+O painel só concede escrita a usuários na tabela `admin_users`. RLS protege conteúdo e administradores; **não use** chaves `service_role` no navegador.
+
+## TMDB — API e licenças
+
+A chave v3 do TMDB está armazenada no Vercel em `TMDB_API_KEY` como variável **sensitive**. O modo `TMDB_NONCOMMERCIAL_DEMO=true` permite testar a interface; ele não deve ser usado para monetização.
+
+A chave e o token já foram exibidos em um print na conversa; **substitua-os quando possível**, editando a variável apenas no painel da Vercel: https://vercel.com/iperto/morilla-flix-/settings/environment-variables.
+
+**Importante:** a API gratuita do TMDB permite uso não comercial sob suas condições. Antes de ligar anúncios ou faturar com dados/imagens do TMDB, obtenha licença comercial e direitos pertinentes. O TMDB **não disponibiliza** os filmes comerciais para reprodução. A integração de trailers mostra vídeos do YouTube, não longas-metragens completos.
+
+Manual detalhado: [docs/TMDB.md](docs/TMDB.md).
+
+## Infraestrutura
+
+- Site HTML/CSS/JavaScript no GitHub, entregue pelo Vercel.
+- Vercel Function `api/tmdb.js`: proxy da API TMDB, sem expor o token ao navegador.
+- Supabase para catálogo, episódios e dados administrativos.
+- `localStorage` para dados pessoais por perfil neste dispositivo.
+- GitHub Actions `.github/workflows/quality.yml` executa testes Node sem depender de credenciais de produção.
+
+Para rodar os testes localmente:
+
+```bash
+node --test tests/*.test.cjs
+```
+
+## Limitações e próximos passos
+
+- Não há biblioteca de filmes comerciais sem licenciamento, cobrança, DRM, autenticação de espectadores, nem streaming de vídeo hospedado pelo Morilla Flix.
+- Os vídeos são incorporados ou carregados de fontes externas autorizadas e podem ficar indisponíveis.
+- Para catálogo comercial com publicidade, obtenha os direitos de conteúdo e licenciamento TMDB; apenas depois ative patrocinadores.
+- Ainda falta conferir visualmente e testar reprodução real do player em Android/desktop.
