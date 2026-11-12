@@ -1,35 +1,39 @@
-# Integração TMDB — Morilla Flix
+# TMDB no Morilla Flix
 
-## Estado atual
-A integração está **implementada, mas DESATIVADA**, pois a intenção de monetizar o Morilla Flix com anúncios exige avaliar a licença comercial da The Movie Database. Não configure `TMDB_COMMERCIAL_LICENSED=true` sem a autorização correspondente.
+## Estado — 11/11/2026
+A integração usa um **servidor de API** em `api/tmdb.js`, e não expõe a credencial ao navegador. A credencial v3 fornecida pelo proprietário foi cadastrada no Vercel como variável **sensitive** `TMDB_API_KEY`. A opção temporária `TMDB_NONCOMMERCIAL_DEMO=true` permite mostrar pôsteres e informações para demonstrar a interface **sem monetização**.
 
-## Licença
-O TMDB informa que a API de desenvolvedor é gratuita para projetos **não comerciais**. Projetos cujo objetivo principal é gerar receita devem tratar de licença comercial diretamente com o TMDB:
-- https://developer.themoviedb.org/docs/faq
-- https://www.themoviedb.org/settings/api
-- contato: sales@themoviedb.org
+A integração do TMDB **não** disponibiliza vídeos completos. As fichas TMDB mostram botão "Informações"; apenas títulos com links autorizados no Supabase podem mostrar "Assistir".
 
-O TMDB fornece **dados, pôsteres e imagens**, NÃO os filmes completos. A autorização para usar o TMDB não concede licença para transmitir obras comerciais.
+## Antes de monetizar
+A API de desenvolvedor do TMDB é gratuita para fins não comerciais com atribuição. A documentação oficial considera comercial o projeto cujo objetivo principal seja gerar receita. **Para ativar anúncios ou lançar o produto comercialmente, obtenha uma licença do TMDB ou desative a integração**.
 
-## Segurança das credenciais
-Como a chave e o token foram mostrados em uma captura de tela compartilhada, recomendamos substituí-los no painel TMDB. Não envie novos tokens por chat, prints, Issues ou commits.
+- FAQ: https://developer.themoviedb.org/docs/faq
+- Contato comercial: sales@themoviedb.org (informar Brasil)
+- Atribuição: https://www.themoviedb.org/about/logos-attribution
 
-Após confirmar a permissão comercial:
-1. Abra https://vercel.com/iperto/morilla-flix-/settings/environment-variables
-2. Adicione **TMDB_READ_ACCESS_TOKEN** com o token de leitura da API recém-gerado, marcado como **Sensitive**, no ambiente **Production**.
-3. Adicione **TMDB_COMMERCIAL_LICENSED** com o valor `true` SOMENTE após obter a autorização comercial; use valor sem aspas.
-4. Implante novamente a produção, pois mudanças de env não são retroativas.
-5. Verifique `/api/tmdb?category=trending`, `/api/tmdb?category=movies`, `/api/tmdb?category=series` e `/api/tmdb?category=search&q=batman`.
+O modo de demonstração impede a renderização de anúncios na home com o catálogo TMDB ativo. Isso não substitui uma autorização de uso comercial.
 
-A credencial é usada SOMENTE no servidor Vercel: `api/tmdb.js` não devolve o token ao cliente. Nunca ponha o token em HTML, CSS ou código JavaScript público.
+## Segurança da credencial
+A captura de tela enviada no chat mostrou a chave e o token. É recomendável **substituir ambos** quando possível. Não compartilhe novas credenciais em chat, repositórios ou screenshots.
 
-## Atribuição e exposição ao público
-Antes da ativação: incluir o **logo oficial aprovado do TMDB** na seção de créditos e o aviso obrigatório: "This product uses the TMDB API but is not endorsed or certified by TMDB." Confira https://www.themoviedb.org/about/logos-attribution
+Após a rotação, edite a chave **somente no painel de Environment Variables da Vercel**:
+https://vercel.com/iperto/morilla-flix-/settings/environment-variables
 
-## API interna
+- `TMDB_API_KEY`: chave v3 de 32 dígitos hexadecimais (sensitive), apenas lado servidor;
+- `TMDB_READ_ACCESS_TOKEN`: alternativa bearer (sensitive), nunca expor no frontend. Se definida, tem prioridade sobre a chave v3;
+- `TMDB_NONCOMMERCIAL_DEMO=true`: apenas para protótipos que não monetizam;
+- `TMDB_COMMERCIAL_LICENSED=true`: apenas após obter licença comercial válida. Não deixe nenhum modo ativado ao retirar o direito de uso.
+
+Depois de alterar valores, é necessário fazer novo deploy para carregar as variáveis. **Não coloque chaves no código GitHub.**
+
+## Endpoints
 - `GET /api/tmdb?category=trending`
 - `GET /api/tmdb?category=movies`
 - `GET /api/tmdb?category=series`
-- `GET /api/tmdb?category=search&q=<nome>`
+- `GET /api/tmdb?category=search&q=nome`
 
-A resposta é uma lista normalizada de metadados e imagens; não contém vídeo. Enquanto não estiver autorizada, retorna HTTP 503 com `code: LICENSING_REQUIRED`.
+Todos os retornos são dados normalizados, sem credenciais. Quando desativado, o servidor retorna HTTP 503 com o código `LICENSING_REQUIRED`.
+
+## Testes
+O código da função foi testado com dados simulados para: modo desativado, modo demonstração, normalização da lista, exclusão de pessoas do resultado, ocultação da chave na resposta e categoria inválida. O deploy automático GitHub/Vercel é acompanhado separadamente. A visualização no navegador real e resposta externa do TMDB dependem de uma consulta de rede ao site publicado.
