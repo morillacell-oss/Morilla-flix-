@@ -101,3 +101,16 @@ footer{padding:26px 18px 65px;font-size:10px}
 .modalwrap{padding:10px;align-items:center}.modal{max-height:91vh;border-radius:14px;padding:13px}
 }
 @media(max-width:375px){header .nav{font-size:10px!important}.brandname{font-size:19px}.hero{height:535px}.herotitle{font-size:44px}}
+
+/* Seletores da vitrine principal: estado sem animação automática, controle do visitante. */
+.hero-dots{position:absolute;left:50%;bottom:36px;z-index:5;transform:translateX(-50%);display:flex;align-items:center;gap:7px}
+.hero-dots button{border:none;border-radius:99px;background:#79797e;width:7px;height:7px;padding:0;min-height:7px;opacity:.75;box-shadow:0 2px 5px #0009;transition:all .2s}
+.hero-dots button.active{background:#e50914;width:23px;opacity:1}
+.hero-dots button:hover{opacity:1}
+@media(max-width:700px){
+.hero{height:480px}
+.hero-dots{bottom:7px;gap:8px}
+.hero-dots button{width:7px;height:7px}
+.hero-dots button.active{width:24px}
+}
+@media(max-width:375px){.hero{height:465px}}
