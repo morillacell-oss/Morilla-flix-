@@ -19,7 +19,7 @@ main{padding-bottom:90px}.content{padding:0 clamp(16px,4vw,70px)}.section{margin
 @media(max-width:840px){header{gap:6px;flex-wrap:wrap;padding:10px 14px}.brand svg{height:34px;width:43px}.brandname{font-size:22px}.headeractions{margin-left:auto}nav{order:3;width:100%;overflow:auto;justify-content:space-between}.nav{padding:10px;font-size:12px;white-space:nowrap}.hero{min-height:520px;padding:55px 22px 38px}.herotitle{letter-spacing:-2px}.hero:after{background:linear-gradient(0deg,#000 0%,rgba(0,0,0,.45) 90%),linear-gradient(90deg,#0008,transparent)}.shelf{grid-auto-columns:185px}.detailshero{grid-template-columns:1fr}.detailshero .cover{order:-1}.formgrid{grid-template-columns:1fr}.sponsor{align-items:start;flex-direction:column}}@media(max-width:420px){.nav{font-size:11px;padding:9px 5px}.brandname{font-size:19px}.hero{min-height:500px}.btn{padding:11px 14px}.gridmovies{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.gridmovies .movie .details{padding:9px}.gridmovies .movie h3{font-size:13px}}
 </style>
 <link rel="icon" type="image/svg+xml" href="assets/gorilla.svg">
-<link rel="stylesheet" href="assets/premium.css?v=2.0.0"><link rel="stylesheet" href="assets/reference-layout.css?v=3.0.5"><link rel="stylesheet" href="assets/tmdb.css?v=1.0.0">
+<link rel="stylesheet" href="assets/premium.css?v=2.0.0"><link rel="stylesheet" href="assets/reference-layout.css?v=3.0.5"><link rel="stylesheet" href="assets/tmdb.css?v=1.0.0"><link rel="stylesheet" href="assets/cinema-player.css?v=4.0.0">
 </head>
 <body>
 <header><a class="brand" href="#inicio" aria-label="Morilla Flix início">
@@ -104,8 +104,12 @@ function tmdbDetails(key){
  showModal('<div class="tmdb-details"><img src="'+safe(tmdbImage(t.backdrop_path||t.poster_path,"w780"))+'" alt="" onerror="this.onerror=null;this.src=\'assets/poster-fallback.svg\'"><h2>'+safe(t.title)+'</h2><p class="smallmuted">'+safe((t.release_date||"").slice(0,4))+' · Nota TMDB: '+safe((Number(t.vote_average)||0).toFixed(1))+'/10</p><p>'+safe(t.description||"Descrição indisponível.")+'</p><div class="notice">Este item é uma ficha de catálogo, não um vídeo liberado para reprodução.</div><a class="btn outline" href="'+safe(href)+'" target="_blank" rel="noopener noreferrer">Ver informações no TMDB ↗</a></div>');
 }
 
-function mediaCard(t){let score=Object.values(store.data).flatMap(x=>x.ratings?.[t.id]?[x.ratings[t.id]]:[]),rate=score.length?(score.reduce((a,b)=>a+b,0)/score.length).toFixed(1):"";
-return '<button class="movie" data-title="'+safe(t.id)+'"><img class="thumb" loading="lazy" src="'+safe(img(t.poster_url||t.backdrop_url))+'" alt="Capa de '+safe(t.name)+'" onerror="this.onerror=null;this.src=\'assets/poster-fallback.svg\'"><span class="chip">'+(t.kind==="series"?"COLEÇÃO":"FILME")+'</span>'+(rate?'<span class="badgerating">★ '+rate+'</span>':"")+'<div class="details"><h3>'+safe(t.name)+'</h3><p>'+safe(t.release_year||"")+" · "+safe(t.genre)+'</p></div></button>';}
+function mediaCard(t){
+ const score=Object.values(store.data).flatMap(x=>x.ratings?.[t.id]?[x.ratings[t.id]]:[]);
+ const rate=score.length?(score.reduce((a,b)=>a+b,0)/score.length).toFixed(1):"";
+ const hasVideo=Boolean(t.video_url)||episodes.some(e=>e.title_id===t.id && e.video_url);
+ return '<article class="movie" data-is-series="'+(t.kind==="series"?"true":"false")+'"><img class="thumb" loading="lazy" src="'+safe(img(t.poster_url||t.backdrop_url))+'" alt="Capa de '+safe(t.name)+'" onerror="this.onerror=null;this.src=\'assets/poster-fallback.svg\'"><span class="chip">'+(t.kind==="series"?"COLEÇÃO":"FILME")+'</span>'+(rate?'<span class="badgerating">★ '+rate+'</span>':"")+'<div class="details"><h3>'+safe(t.name)+'</h3><p>'+safe(t.release_year||"")+' · '+safe(t.genre)+'</p></div><button class="poster-open" data-title="'+safe(t.id)+'" aria-label="Ver detalhes de '+safe(t.name)+'"></button>'+(hasVideo?'<button class="poster-play" data-watch="'+safe(t.id)+'" aria-label="Assistir '+safe(t.name)+'">▶</button>':"")+'</article>';
+}
 function shelf(label,list){return list.length?'<section class="section"><h2 class="heading">'+safe(label)+'</h2><div class="shelf">'+list.map(mediaCard).join("")+'</div></section>':"";}
 function sponsorBlock(){const s=sponsors.find(x=>x.is_active);if(!s)return"";const link=urlSafe(s.destination_url);return '<section class="sponsor"><div><span class="sptag">CONTEÚDO PATROCINADO</span><h3>'+safe(s.heading)+'</h3><p>'+safe(s.description)+'</p></div>'+(link?'<a class="btn small outline" target="_blank" rel="noopener noreferrer sponsored" href="'+safe(link)+'">Conhecer patrocinador ↗</a>':"")+'</section>';}
 function home(){if(!featured)return '<div class="content"><div class="alertbox"><div class="eyebrow">MORILLA FLIX</div><h2>'+(loadError?'Não foi possível carregar os filmes':'O catálogo está sendo preparado')+'</h2><p>'+(loadError?'Erro de conexão: '+safe(loadError)+' — tente novamente em instantes.':'Ainda não há filmes publicados.')+'</p><button class="btn red" id="retryCatalog">↻ Tentar novamente</button></div></div>';const picks=[...titles.filter(x=>x.featured),...titles.filter(x=>!x.featured&&x.kind==="movie")].slice(0,4);const f=picks[featuredIndex%picks.length]||featured;const cont=titles.filter(t=>pdata().history[t.id]?.position>5);const recom=[...titles].sort((a,b)=>recommendScore(b)-recommendScore(a));if(tmdbFeed.length){
@@ -136,9 +140,92 @@ function openDetails(id){currentDetails=id;render();window.scrollTo(0,0);}
 function favorite(id){let d=pdata();d.favorites=d.favorites.includes(id)?d.favorites.filter(x=>x!==id):[...d.favorites,id];saveStore();render();toast(d.favorites.includes(id)?"Adicionado à sua lista":"Removido da sua lista");}
 function rate(id,n){pdata().ratings[id]=n;saveStore();render();toast("Sua avaliação foi salva neste dispositivo.");}
 function showModal(content){overlay.innerHTML='<div class="modalwrap" id="modalWrap"><div class="modal" role="dialog" aria-modal="true"><div class="modaltop"><h2>MORILLA <span style="color:var(--red)">FLIX</span></h2><button class="round" data-close aria-label="Fechar">✕</button></div>'+content+'</div></div>';}
-function closeModal(){const v=overlay.querySelector("video");if(v)v.pause();overlay.innerHTML="";}function trackVideo(id,video){const d=pdata();let h=d.history[id]||{position:0,percent:0};h.position=video.currentTime||0;h.percent=video.duration?Math.floor(100*video.currentTime/video.duration):0;d.history[id]=h;saveStore();}
+function closeModal(){const v=overlay.querySelector("video");if(v)v.pause();overlay.innerHTML="";}function trackVideo(id,video,episodeId){
+ const d=pdata(),key=cinemaResumeKey(id,episodeId);
+ const record={position:video.currentTime||0,percent:video.duration?Math.floor(100*video.currentTime/video.duration):0};
+ d.history[key]=record;d.history[id]=record;saveStore();
+}
+
 function youtubeEmbed(url){try{const u=new URL(url);let id=null;if(u.hostname==="youtu.be")id=u.pathname.slice(1);if(["youtube.com","www.youtube.com","m.youtube.com"].includes(u.hostname)){id=u.searchParams.get("v");if(u.pathname.startsWith("/embed/"))id=u.pathname.split("/")[2]}return /^[a-zA-Z0-9_-]{11}$/.test(id||"")?"https://www.youtube-nocookie.com/embed/"+id:null;}catch{return null;}}
-function play(id,episodeId){const t=titleBy(id),e=episodeId?episodes.find(x=>x.id===episodeId):null;if(!t)return;const link=e?.video_url||t.video_url||episodes.find(x=>x.title_id===id)?.video_url;if(!link){toast("Este título ainda não possui vídeo publicado.");return;}const embed=youtubeEmbed(link);if(!embed&&!urlSafe(link)){toast("O vídeo não usa uma URL HTTPS válida.");return;}let body='<h3>'+safe(t.name)+(e?" — "+safe(e.name):"")+'</h3>'+(embed?'<iframe class="videoembed" src="'+safe(embed)+'" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen title="Player de vídeo"></iframe>':'<video id="videoPlayer" playsinline controls autoplay preload="metadata" poster="'+safe(img(t.backdrop_url||t.poster_url))+'" src="'+safe(urlSafe(link))+'"></video>')+'<p class="smallmuted">'+safe(t.credit||"Reprodução de conteúdo autorizado")+'</p>';showModal(body);if(!embed){let v=document.getElementById("videoPlayer");v.addEventListener("loadedmetadata",()=>{const pos=pdata().history[id]?.position;if(pos&&pos<v.duration-8)v.currentTime=pos;});v.addEventListener("timeupdate",()=>{if(Math.floor(v.currentTime)%4===0)trackVideo(id,v)});v.addEventListener("pause",()=>trackVideo(id,v));v.addEventListener("ended",()=>{pdata().history[id]={position:0,percent:100};saveStore()});v.addEventListener("error",()=>toast("O vídeo não pôde ser carregado. Verifique o link e a disponibilidade da origem."));}}
+function cinemaResumeKey(id,episodeId){return episodeId ? id+":"+episodeId : id;}
+function cinemaSeek(seconds){
+ const video=document.getElementById("cinemaVideo");
+ if(!video || !Number.isFinite(video.duration))return;
+ video.currentTime=Math.max(0,Math.min(video.duration,video.currentTime+seconds));
+}
+function cinemaAction(action){
+ const video=document.getElementById("cinemaVideo");
+ const stage=document.getElementById("cinemaStage");
+ if(action==="fullscreen"){
+  if(!stage?.requestFullscreen)return toast("Seu navegador não oferece tela cheia.");
+  if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{});
+  else stage.requestFullscreen().catch(()=>toast("Não foi possível abrir a tela cheia."));
+ }
+ if(!video)return;
+ if(action==="pip"){
+  if(document.pictureInPictureElement)document.exitPictureInPicture?.().catch(()=>{});
+  else if(typeof video.requestPictureInPicture==="function")video.requestPictureInPicture().catch(()=>toast("Modo janela indisponível."));
+  else toast("Seu navegador não oferece o modo janela.");
+ }
+ if(action==="speed"){
+  const speeds=[1,1.25,1.5,2];
+  let idx=speeds.findIndex(s=>s===video.playbackRate);
+  video.playbackRate=speeds[(idx+1)%speeds.length];
+  const label=document.getElementById("cinemaSpeed");if(label)label.textContent=video.playbackRate+"×";
+ }
+ if(action==="back")cinemaSeek(-10);
+ if(action==="forward")cinemaSeek(10);
+}
+function play(id,episodeId){
+ const t=titleBy(id);if(!t)return;
+ const epList=episodes.filter(e=>e.title_id===id && e.published && e.video_url)
+  .sort((a,b)=>(a.season_number-b.season_number)||(a.episode_number-b.episode_number));
+ const chosen=episodeId?epList.find(e=>e.id===episodeId):epList[0];
+ const link=chosen?.video_url||t.video_url;
+ if(!link)return toast("Este título ainda não tem vídeo liberado.");
+ const embed=youtubeEmbed(link);
+ const direct=urlSafe(link);
+ if(!embed&&!direct)return toast("A origem do vídeo não tem uma URL HTTPS válida.");
+ const idx=chosen?epList.findIndex(x=>x.id===chosen.id):-1;
+ const next=idx>=0?epList[idx+1]:null,prev=idx>0?epList[idx-1]:null;
+ const title=t.name+(chosen?" · "+chosen.name:"");
+ const epTag=chosen?"Temporada "+chosen.season_number+" · Episódio "+chosen.episode_number:"Filme completo";
+ const videoBox=embed?
+ '<iframe class="videoembed" id="cinemaEmbed" src="'+safe(embed)+'" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Player oficial de '+safe(title)+'"></iframe>':
+ '<video id="cinemaVideo" playsinline controls autoplay preload="metadata" poster="'+safe(img(t.backdrop_url||t.poster_url))+'" src="'+safe(direct)+'"></video>';
+ const nextButton=next?'<button class="btn primary" data-watch-episode="'+safe(next.id)+'" data-title-id="'+safe(id)+'">▶ Próximo episódio</button>':"";
+ const epButtons=epList.length?'<section class="cinema-episodes"><h3>Episódios</h3><div class="cinema-episode-grid">'+epList.map((e,i)=>'<button class="cinema-episode '+(e.id===chosen?.id?"active":"")+'" data-watch-episode="'+safe(e.id)+'" data-title-id="'+safe(id)+'"><b>'+safe(e.episode_number)+'</b><span><strong>'+safe(e.name)+'</strong><small>T'+e.season_number+' · E'+e.episode_number+' · '+safe(e.duration_minutes||"")+' min</small></span><span class="ep-play">▶</span></button>').join("")+'</div></section>':"";
+ const errorLink=embed?"https://www.youtube.com/watch?v="+(embed.split("/embed/")[1]||""):direct;
+ const markup='<div class="cinema-overlay" role="dialog" aria-modal="true" aria-label="Assistindo '+safe(title)+'"><div class="cinema-shell">'+
+ '<div class="cinema-header"><button class="cinema-back" data-close aria-label="Voltar">←</button><div class="cinema-brand">MORILLA <strong>FLIX</strong></div><div class="cinema-heading"><strong>'+safe(t.name)+'</strong><small>'+safe(epTag)+'</small></div><div class="cinema-label"><i></i> CONTEÚDO AUTORIZADO</div></div>'+
+ '<div class="cinema-stage" id="cinemaStage"><div class="cinema-screen">'+videoBox+'<div class="cinema-error" id="cinemaError" hidden><h3>Não foi possível reproduzir</h3><p>A origem do vídeo não respondeu. Você pode abrir o arquivo no provedor original.</p><a class="btn red" target="_blank" rel="noopener noreferrer" href="'+safe(errorLink)+'">Abrir vídeo na origem ↗</a></div></div></div>'+
+ '<div class="cinema-controls"><button class="btn outline" data-player-action="back">↶ 10s</button><button class="btn outline" data-player-action="forward">10s ↷</button><button class="btn outline" data-player-action="speed" id="cinemaSpeed">1×</button><span class="spacer"></span><button class="btn outline" data-player-action="pip">▣ Janela</button><button class="btn outline" data-player-action="fullscreen">⛶ Tela cheia</button>'+nextButton+'</div>'+
+ '<div class="cinema-details"><div class="cinema-kicker">MORILLA FLIX · CINEMA ABERTO</div><h2>'+safe(t.name)+'</h2><div class="cinema-meta"><span>'+safe(t.release_year||"")+'</span><span>'+safe(epTag)+'</span><span>'+safe(t.genre)+'</span><span>HD</span></div><p class="cinema-description">'+safe(chosen?.description||t.description)+'</p><p class="cinema-credit">'+safe(t.credit||"Conteúdo disponibilizado com autorização.")+'</p>'+epButtons+'<section class="cinema-upnext"><h3>Você também pode assistir</h3>'+shelf("Outros filmes liberados",titles.filter(x=>x.id!==id&&x.video_url).slice(0,8))+'</section></div></div></div>';
+ const old=overlay.querySelector("video"); if(old)old.pause();
+ overlay.innerHTML=markup;
+ const video=document.getElementById("cinemaVideo");
+ if(!video)return;
+ const d=pdata(),key=cinemaResumeKey(id,chosen?.id),resume=d.history[key]?.position||d.history[id]?.position||0;
+ let lastSaved=-1;
+ video.addEventListener("loadedmetadata",()=>{
+  if(resume>12&&resume<video.duration-8){
+   try{video.currentTime=resume;toast("Retomando de "+Math.floor(resume/60)+"m "+Math.floor(resume%60)+"s");}catch{}
+  }
+  video.play().catch(()=>{});
+ });
+ video.addEventListener("timeupdate",()=>{
+  if(Math.floor(video.currentTime/4)!==lastSaved){lastSaved=Math.floor(video.currentTime/4);trackVideo(id,video,chosen?.id);}
+ });
+ video.addEventListener("pause",()=>trackVideo(id,video,chosen?.id));
+ video.addEventListener("error",()=>{document.getElementById("cinemaError")?.removeAttribute("hidden");});
+ video.addEventListener("ended",()=>{
+  const d=pdata();
+  d.history[key]={position:0,percent:100};d.history[id]={position:0,percent:100};saveStore();
+  if(next)toast("Episódio concluído! Você pode iniciar o próximo.");
+  else toast("Filme concluído. Obrigado por assistir!");
+ });
+}
+
 function manageProfiles(){showModal('<h2>Quem está assistindo?</h2><p class="smallmuted">Perfis locais, sem conta. Cada perfil guarda seus próprios favoritos e avaliações neste dispositivo.</p><div class="profilegrid">'+store.profiles.map((p,i)=>'<button class="profilecard '+(p.id===store.active?"active":"")+'" data-profile="'+safe(p.id)+'"><span class="avatar">'+safe(p.name.charAt(0).toUpperCase())+'</span><strong>'+safe(p.name)+'</strong>'+(p.id===store.active?'<div class="smallmuted">Ativo</div>':"")+'</button>').join("")+'</div><div class="field"><label for="newProfile">Novo perfil (até 4)</label><input id="newProfile" maxlength="22" placeholder="Nome do perfil"></div><button class="btn red" id="addProfile" '+(store.profiles.length>=4?"disabled":"")+'>+ Criar perfil</button>');}
 function showAdmin(){adminMode=true;showModal('<h2>Painel administrativo</h2><p class="smallmuted">Somente administradores autorizados no Supabase podem gerenciar o conteúdo. Visitantes assistem sem login.</p>'+(!adminToken?'<form id="loginForm"><label class="field">E-mail<input required id="adminEmail" type="email" autocomplete="username"></label><label class="field">Senha<input required id="adminPass" type="password" autocomplete="current-password"></label><button type="submit" class="btn red">Entrar com Supabase</button></form>':adminDashboard()));}
 function adminDashboard(){return '<div class="notice ok">Acesso de administrador autenticado.</div><div class="actions" style="margin:12px 0"><button class="btn red" id="newTitle">+ Novo filme/série</button><button class="btn outline" id="newEpisode">+ Episódio</button><button class="btn outline" id="newSponsor">+ Patrocínio</button><button class="btn" id="logoutAdmin">Sair</button></div><h3>Catálogo cadastrado</h3>'+titles.map(t=>'<div class="episode"><div style="flex:1"><strong>'+safe(t.name)+'</strong><div class="smallmuted">'+safe(t.kind)+' · '+(t.published?"Publicado":"Rascunho")+'</div></div><button class="btn small" data-edit="'+safe(t.id)+'">Editar</button><button class="btn small outline" data-remove="'+safe(t.id)+'">Excluir</button></div>').join("")+'<h3>Episódios</h3>'+episodes.map(e=>'<div class="episode"><div style="flex:1"><strong>'+safe(e.name)+'</strong><div class="smallmuted">'+safe(titleBy(e.title_id)?.name)+' · T'+e.season_number+' E'+e.episode_number+'</div></div><button class="btn small" data-edit-episode="'+safe(e.id)+'">Editar</button><button class="btn small outline" data-remove-episode="'+safe(e.id)+'">Excluir</button></div>').join("")+'<h3>Patrocinadores</h3>'+sponsors.map(s=>'<div class="episode"><div style="flex:1"><strong>'+safe(s.heading)+'</strong><div class="smallmuted">'+(s.is_active?"Ativo":"Inativo")+'</div></div><button class="btn small" data-edit-sponsor="'+safe(s.id)+'">Editar</button><button class="btn small outline" data-remove-sponsor="'+safe(s.id)+'">Excluir</button></div>').join("");}
@@ -159,6 +246,8 @@ if(el.dataset.title){openDetails(el.dataset.title);return;}
 if(el.dataset.tmdb){tmdbDetails(el.dataset.tmdb);return;}
 if(el.dataset.watch){play(el.dataset.watch);return;}
 if(el.dataset.episode){let e=episodes.find(x=>x.id===el.dataset.episode);if(e)play(e.title_id,e.id);return;}
+if(el.dataset.watchEpisode){play(el.dataset.titleId,el.dataset.watchEpisode);return;}
+if(el.dataset.playerAction){cinemaAction(el.dataset.playerAction);return;}
 if(el.dataset.favorite){favorite(el.dataset.favorite);return;}
 if(el.dataset.rate){rate(el.dataset.rate,Number(el.dataset.value));return;}
 if(el.dataset.genre){selectedGenre=el.dataset.genre;document.querySelectorAll("[data-genre]").forEach(x=>x.classList.toggle("active",x.dataset.genre===selectedGenre));drawGallery(currentView);return;}
@@ -178,7 +267,15 @@ if(form.id==="loginForm"){let email=document.getElementById("adminEmail").value,
 if(form.id==="titleForm")await saveEntity(form,"titles");if(form.id==="episodeForm")await saveEntity(form,"episodes");if(form.id==="sponsorForm")await saveEntity(form,"sponsors");
 }catch(err){toast(err.message);console.error(err);}finally{submit.disabled=false;}});
 overlay.addEventListener("click",e=>{if(e.target.id==="modalWrap")closeModal();});
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"){closeModal();return;}
+ if(!overlay.querySelector(".cinema-overlay") || ["INPUT","TEXTAREA"].includes(document.activeElement?.tagName))return;
+ const video=document.getElementById("cinemaVideo");
+ if(e.key==="ArrowLeft"){e.preventDefault();cinemaSeek(-10);}
+ if(e.key==="ArrowRight"){e.preventDefault();cinemaSeek(10);}
+ if(e.key===" "&&video){e.preventDefault();video.paused?video.play().catch(()=>{}):video.pause();}
+ if(e.key.toLowerCase()==="f"){e.preventDefault();cinemaAction("fullscreen");}
+});
 refresh();
 loadTmdb();
 </script></body></html>
