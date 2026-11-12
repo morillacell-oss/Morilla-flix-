@@ -129,3 +129,11 @@ footer{padding:26px 18px 65px;font-size:10px}
 .movie .details h3,.gridmovies .movie .details h3{font-size:13px}
 .movie .details p,.gridmovies .movie .details p{font-size:9px}
 }
+
+/* Detalhes finais do cabeçalho e densidade de capas no desktop */
+.nav-icon{width:18px;height:18px;flex:0 0 auto;margin-right:7px}
+.shelf{grid-auto-columns:clamp(158px,12.7vw,226px)}
+@media(max-width:700px){
+ .nav-icon{display:none}
+ .shelf{grid-auto-columns:clamp(152px,47vw,215px)}
+}
