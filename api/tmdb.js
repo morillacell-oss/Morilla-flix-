@@ -20,7 +20,9 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: "Método não permitido." });
   }
 
-  if (process.env.TMDB_COMMERCIAL_LICENSED !== "true") {
+  const commercialLicensed = process.env.TMDB_COMMERCIAL_LICENSED === "true";
+  const demoOnly = process.env.TMDB_NONCOMMERCIAL_DEMO === "true";
+  if (!commercialLicensed && !demoOnly) {
     res.setHeader("Cache-Control", "no-store");
     return res.status(503).json({
       enabled: false,
@@ -30,7 +32,8 @@ module.exports = async function handler(req, res) {
   }
 
   const token = process.env.TMDB_READ_ACCESS_TOKEN || "";
-  if (!token || token.length < 20) {
+  const apiKey = process.env.TMDB_API_KEY || "";
+  if ((!token || token.length < 20) && !/^[a-f\d]{32}$/i.test(apiKey)) {
     res.setHeader("Cache-Control", "no-store");
     return res.status(503).json({
       enabled: false,
@@ -50,6 +53,7 @@ module.exports = async function handler(req, res) {
 
   const target = new URL("https://api.themoviedb.org" + endpoint);
   target.searchParams.set("language", "pt-BR");
+  if (!token) target.searchParams.set("api_key", apiKey);
   target.searchParams.set("page", "1");
   if (category === "search") {
     target.searchParams.set("query", query);
@@ -59,7 +63,7 @@ module.exports = async function handler(req, res) {
   try {
     const upstream = await fetch(target, {
       headers: {
-        Authorization: "Bearer " + token,
+        ...(token ? { Authorization: "Bearer " + token } : {}),
         Accept: "application/json"
       },
       signal: AbortSignal.timeout(8500)
@@ -88,9 +92,10 @@ module.exports = async function handler(req, res) {
         vote_average: Number(item.vote_average) || 0
       })).filter(item => item.id > 0 && item.title && (item.poster_path || item.backdrop_path));
 
-    res.setHeader("Cache-Control", "public, s-maxage=900, stale-while-revalidate=600");
+    res.setHeader("Cache-Control", "public, s-maxage=300, stale-while-revalidate=300");
     res.status(200).json({
       enabled: true,
+      demo: !commercialLicensed,
       provider: "TMDB",
       note: "Somente informações e imagens; nenhuma licença de reprodução de vídeo.",
       results
