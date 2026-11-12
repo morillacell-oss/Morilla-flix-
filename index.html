@@ -19,7 +19,7 @@ main{padding-bottom:90px}.content{padding:0 clamp(16px,4vw,70px)}.section{margin
 @media(max-width:840px){header{gap:6px;flex-wrap:wrap;padding:10px 14px}.brand svg{height:34px;width:43px}.brandname{font-size:22px}.headeractions{margin-left:auto}nav{order:3;width:100%;overflow:auto;justify-content:space-between}.nav{padding:10px;font-size:12px;white-space:nowrap}.hero{min-height:520px;padding:55px 22px 38px}.herotitle{letter-spacing:-2px}.hero:after{background:linear-gradient(0deg,#000 0%,rgba(0,0,0,.45) 90%),linear-gradient(90deg,#0008,transparent)}.shelf{grid-auto-columns:185px}.detailshero{grid-template-columns:1fr}.detailshero .cover{order:-1}.formgrid{grid-template-columns:1fr}.sponsor{align-items:start;flex-direction:column}}@media(max-width:420px){.nav{font-size:11px;padding:9px 5px}.brandname{font-size:19px}.hero{min-height:500px}.btn{padding:11px 14px}.gridmovies{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.gridmovies .movie .details{padding:9px}.gridmovies .movie h3{font-size:13px}}
 </style>
 <link rel="icon" type="image/svg+xml" href="assets/gorilla.svg">
-<link rel="stylesheet" href="assets/premium.css?v=2.0.0"><link rel="stylesheet" href="assets/reference-layout.css?v=3.0.5">
+<link rel="stylesheet" href="assets/premium.css?v=2.0.0"><link rel="stylesheet" href="assets/reference-layout.css?v=3.0.5"><link rel="stylesheet" href="assets/tmdb.css?v=1.0.0">
 </head>
 <body>
 <header><a class="brand" href="#inicio" aria-label="Morilla Flix início">
@@ -35,6 +35,7 @@ const URL_BASE="https://bpipdcbwlllwnvolorfp.supabase.co";
 const API_KEY="sb_publishable_IrhYV4Ma_ENch1cvlTSy2g_4zTg5qkk";
 const app=document.getElementById("app"),overlay=document.getElementById("overlay");
 let titles=[],episodes=[],sponsors=[],featured=null,featuredIndex=0,adminToken=null,adminUser=null,adminMode=false,selectedGenre="Todos",loadError=null;
+let tmdbFeed=[],tmdbMovies=[],tmdbSeries=[],tmdbLoaded=false;
 const storeKey="morillaflix_v1";
 function loadStore(){try{let x=JSON.parse(localStorage.getItem(storeKey));return x&&typeof x==="object"?x:{};}catch{return {};}}
 let store=Object.assign({profiles:[{id:"principal",name:"Principal"}],active:"principal",data:{}},loadStore());
@@ -68,11 +69,51 @@ try{
 render();
 }
 function titleBy(id){return titles.find(x=>x.id===id);}
+function tmdbImage(path,size="w780"){return path && /^\/[A-Za-z0-9_.-]+\.(?:jpg|png|webp)$/.test(path) ? "https://image.tmdb.org/t/p/"+size+path : "assets/poster-fallback.svg";}
+function tmdbCard(t){
+ const key=t.media_type+":"+t.id;
+ const genre=t.media_type==="tv"?"SÉRIE":"FILME";
+ return '<button class="movie tmdb-movie" data-tmdb="'+safe(key)+'"><img class="thumb" loading="lazy" src="'+safe(tmdbImage(t.backdrop_path||t.poster_path))+'" alt="Capa de '+safe(t.title)+'" onerror="this.onerror=null;this.src=\'assets/poster-fallback.svg\'"><span class="chip">'+genre+'</span><div class="details"><h3>'+safe(t.title)+'</h3><p>'+safe((t.release_date||"").slice(0,4))+' · Informações TMDB</p></div></button>';
+}
+function tmdbShelf(label,list){return list.length?'<section class="section tmdb-shelf"><h2 class="heading">'+safe(label)+'</h2><div class="shelf">'+list.map(tmdbCard).join("")+'</div></section>':"";}
+function tmdbCredits(){return '<div class="tmdb-credits"><a target="_blank" rel="noopener noreferrer" href="https://www.themoviedb.org"><img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDB — The Movie Database" width="90"></a><p>This product uses the TMDB API but is not endorsed or certified by TMDB.<br>Os títulos desta seção são informativos. A exibição de filmes completos exige licença própria.</p></div>';}
+async function loadTmdb(){
+ if(tmdbLoaded)return;
+ tmdbLoaded=true;
+ try{
+ const r=await fetch("/api/tmdb?category=trending",{headers:{"Accept":"application/json"}});
+ if(!r.ok)return;
+ const json=await r.json();
+ if(!json.enabled||!Array.isArray(json.results))return;
+ tmdbFeed=json.results;
+ const [movies,series]=await Promise.all([
+ fetch("/api/tmdb?category=movies").then(x=>x.ok?x.json():null).catch(()=>null),
+ fetch("/api/tmdb?category=series").then(x=>x.ok?x.json():null).catch(()=>null)
+ ]);
+ tmdbMovies=movies?.results||[];
+ tmdbSeries=series?.results||[];
+ render();
+ }catch(err){console.info("Catálogo TMDB opcional indisponível.");}
+}
+function tmdbDetails(key){
+ const [type,id]=key.split(":");
+ const all=[...tmdbFeed,...tmdbMovies,...tmdbSeries];
+ const t=all.find(x=>x.media_type===type&&String(x.id)===id);
+ if(!t)return toast("Informações não disponíveis.");
+ const href="https://www.themoviedb.org/"+(type==="tv"?"tv/":"movie/")+encodeURIComponent(String(t.id));
+ showModal('<div class="tmdb-details"><img src="'+safe(tmdbImage(t.backdrop_path||t.poster_path,"w780"))+'" alt="" onerror="this.onerror=null;this.src=\'assets/poster-fallback.svg\'"><h2>'+safe(t.title)+'</h2><p class="smallmuted">'+safe((t.release_date||"").slice(0,4))+' · Nota TMDB: '+safe((Number(t.vote_average)||0).toFixed(1))+'/10</p><p>'+safe(t.description||"Descrição indisponível.")+'</p><div class="notice">Este item é uma ficha de catálogo, não um vídeo liberado para reprodução.</div><a class="btn outline" href="'+safe(href)+'" target="_blank" rel="noopener noreferrer">Ver informações no TMDB ↗</a></div>');
+}
+
 function mediaCard(t){let score=Object.values(store.data).flatMap(x=>x.ratings?.[t.id]?[x.ratings[t.id]]:[]),rate=score.length?(score.reduce((a,b)=>a+b,0)/score.length).toFixed(1):"";
 return '<button class="movie" data-title="'+safe(t.id)+'"><img class="thumb" loading="lazy" src="'+safe(img(t.poster_url||t.backdrop_url))+'" alt="Capa de '+safe(t.name)+'" onerror="this.onerror=null;this.src=\'assets/poster-fallback.svg\'"><span class="chip">'+(t.kind==="series"?"COLEÇÃO":"FILME")+'</span>'+(rate?'<span class="badgerating">★ '+rate+'</span>':"")+'<div class="details"><h3>'+safe(t.name)+'</h3><p>'+safe(t.release_year||"")+" · "+safe(t.genre)+'</p></div></button>';}
 function shelf(label,list){return list.length?'<section class="section"><h2 class="heading">'+safe(label)+'</h2><div class="shelf">'+list.map(mediaCard).join("")+'</div></section>':"";}
 function sponsorBlock(){const s=sponsors.find(x=>x.is_active);if(!s)return"";const link=urlSafe(s.destination_url);return '<section class="sponsor"><div><span class="sptag">CONTEÚDO PATROCINADO</span><h3>'+safe(s.heading)+'</h3><p>'+safe(s.description)+'</p></div>'+(link?'<a class="btn small outline" target="_blank" rel="noopener noreferrer sponsored" href="'+safe(link)+'">Conhecer patrocinador ↗</a>':"")+'</section>';}
-function home(){if(!featured)return '<div class="content"><div class="alertbox"><div class="eyebrow">MORILLA FLIX</div><h2>'+(loadError?'Não foi possível carregar os filmes':'O catálogo está sendo preparado')+'</h2><p>'+(loadError?'Erro de conexão: '+safe(loadError)+' — tente novamente em instantes.':'Ainda não há filmes publicados.')+'</p><button class="btn red" id="retryCatalog">↻ Tentar novamente</button></div></div>';const picks=[...titles.filter(x=>x.featured),...titles.filter(x=>!x.featured&&x.kind==="movie")].slice(0,4);const f=picks[featuredIndex%picks.length]||featured;const cont=titles.filter(t=>pdata().history[t.id]?.position>5);const recom=[...titles].sort((a,b)=>recommendScore(b)-recommendScore(a));return '<section class="hero"><div class="heroimage" style="background-image:url(&quot;'+safe(img(f.backdrop_url||f.poster_url))+'&quot;),url(&quot;'+safe(img(f.poster_url))+'&quot;)"></div><div class="herotext"><div class="eyebrow">ORIGINAL • CINEMA ABERTO</div><h1 class="herotitle">'+safe(f.name)+'</h1><div class="meta"><span>'+safe(f.release_year||"")+'</span><span class="pill">'+safe(f.age_rating)+'</span><span>'+safe(f.genre)+'</span><span>HD</span></div><p>'+safe(f.description)+'</p><div class="actions"><button class="btn red" data-watch="'+safe(f.id)+'">▶ Assistir agora</button><button class="btn" data-title="'+safe(f.id)+'">ⓘ Mais informações</button><button class="btn outline" data-favorite="'+safe(f.id)+'">'+(pdata().favorites.includes(f.id)?"✓ Na lista":"+ Minha lista")+'</button></div></div><div class="hero-dots" aria-label="Selecionar filme em destaque">'+picks.map((t,i)=>'<button aria-label="Mostrar destaque '+(i+1)+': '+safe(t.name)+'" class="'+(i===(featuredIndex%picks.length)?'active':'')+'" data-slide="'+i+'"></button>').join('')+'</div></section><div class="content"><div class="experience"><span><i>▶</i> ASSISTA GRÁTIS</span><span><i>✓</i> SEM CADASTRO</span><span><i>✦</i> CINEMA INDEPENDENTE</span><span><i>◈</i> EXPERIÊNCIA PREMIUM</span></div><div class="premium-intro"><div><div class="eyebrow">ESCOLHA SUA PRÓXIMA HISTÓRIA</div><h2>Descubra um novo <span>universo.</span></h2></div><p>Grandes histórias merecem uma experiência à altura. Explore nossa seleção de cinema aberto, com filmes e coleções para assistir agora.</p></div>'+shelf("Continue assistindo",cont)+shelf("Lançamentos",titles.filter(t=>t.kind==="movie").slice(0,8))+shelf("Filmes em alta",recom.filter(t=>t.kind==="movie"))+shelf("Séries e coleções",titles.filter(t=>t.kind==="series"))+shelf("Animação & fantasia",titles.filter(t=>["Animação","Fantasia"].includes(t.genre)))+shelf("Descubra mais",titles)+sponsorBlock()+'</div>';}
+function home(){if(!featured)return '<div class="content"><div class="alertbox"><div class="eyebrow">MORILLA FLIX</div><h2>'+(loadError?'Não foi possível carregar os filmes':'O catálogo está sendo preparado')+'</h2><p>'+(loadError?'Erro de conexão: '+safe(loadError)+' — tente novamente em instantes.':'Ainda não há filmes publicados.')+'</p><button class="btn red" id="retryCatalog">↻ Tentar novamente</button></div></div>';const picks=[...titles.filter(x=>x.featured),...titles.filter(x=>!x.featured&&x.kind==="movie")].slice(0,4);const f=picks[featuredIndex%picks.length]||featured;const cont=titles.filter(t=>pdata().history[t.id]?.position>5);const recom=[...titles].sort((a,b)=>recommendScore(b)-recommendScore(a));if(tmdbFeed.length){
+ const top=tmdbFeed.find(x=>x.backdrop_path)||tmdbFeed[0],key=top.media_type+":"+top.id;
+ const tmdbHero='<section class="hero tmdb-hero"><div class="heroimage" style="background-image:url(&quot;'+safe(tmdbImage(top.backdrop_path||top.poster_path,"original"))+'&quot;)"></div><div class="herotext"><div class="eyebrow">✦ DESTAQUES DO CINEMA · TMDB</div><h1 class="herotitle">'+safe(top.title)+'</h1><div class="meta"><span>'+safe((top.release_date||"").slice(0,4))+'</span><span class="pill">CATÁLOGO</span><span>★ '+safe((Number(top.vote_average)||0).toFixed(1))+'</span></div><p>'+safe(top.description||"Descubra novidades e produções populares.")+'</p><div class="actions"><button class="btn red" data-tmdb="'+safe(key)+'">ⓘ Informações</button><button class="btn" data-nav="filmes">▶ Filmes liberados</button></div></div></section>';
+ return tmdbHero+'<div class="content">'+tmdbShelf("Lançamentos e tendências",tmdbFeed)+tmdbShelf("Filmes em alta",tmdbMovies)+tmdbShelf("Séries populares",tmdbSeries)+tmdbCredits()+shelf("Assista gratuitamente",titles.filter(x=>x.kind==="movie"))+shelf("Coleções para assistir",titles.filter(x=>x.kind==="series"))+sponsorBlock()+'</div>';
+ }
+ return '<section class="hero"><div class="heroimage" style="background-image:url(&quot;'+safe(img(f.backdrop_url||f.poster_url))+'&quot;),url(&quot;'+safe(img(f.poster_url))+'&quot;)"></div><div class="herotext"><div class="eyebrow">ORIGINAL • CINEMA ABERTO</div><h1 class="herotitle">'+safe(f.name)+'</h1><div class="meta"><span>'+safe(f.release_year||"")+'</span><span class="pill">'+safe(f.age_rating)+'</span><span>'+safe(f.genre)+'</span><span>HD</span></div><p>'+safe(f.description)+'</p><div class="actions"><button class="btn red" data-watch="'+safe(f.id)+'">▶ Assistir agora</button><button class="btn" data-title="'+safe(f.id)+'">ⓘ Mais informações</button><button class="btn outline" data-favorite="'+safe(f.id)+'">'+(pdata().favorites.includes(f.id)?"✓ Na lista":"+ Minha lista")+'</button></div></div><div class="hero-dots" aria-label="Selecionar filme em destaque">'+picks.map((t,i)=>'<button aria-label="Mostrar destaque '+(i+1)+': '+safe(t.name)+'" class="'+(i===(featuredIndex%picks.length)?'active':'')+'" data-slide="'+i+'"></button>').join('')+'</div></section><div class="content"><div class="experience"><span><i>▶</i> ASSISTA GRÁTIS</span><span><i>✓</i> SEM CADASTRO</span><span><i>✦</i> CINEMA INDEPENDENTE</span><span><i>◈</i> EXPERIÊNCIA PREMIUM</span></div><div class="premium-intro"><div><div class="eyebrow">ESCOLHA SUA PRÓXIMA HISTÓRIA</div><h2>Descubra um novo <span>universo.</span></h2></div><p>Grandes histórias merecem uma experiência à altura. Explore nossa seleção de cinema aberto, com filmes e coleções para assistir agora.</p></div>'+shelf("Continue assistindo",cont)+shelf("Lançamentos",titles.filter(t=>t.kind==="movie").slice(0,8))+shelf("Filmes em alta",recom.filter(t=>t.kind==="movie"))+shelf("Séries e coleções",titles.filter(t=>t.kind==="series"))+shelf("Animação & fantasia",titles.filter(t=>["Animação","Fantasia"].includes(t.genre)))+shelf("Descubra mais",titles)+sponsorBlock()+'</div>';}
 function recommendScore(t){let d=pdata(),ratings=Object.entries(d.ratings),favs=d.favorites.map(titleBy).filter(Boolean),liked=ratings.filter(([id,n])=>n>=4).map(([id])=>titleBy(id)).filter(Boolean),same=[...favs,...liked];return (same.filter(x=>x.genre===t.genre).length*3)+(t.featured?2:0)+(d.history[t.id]?1:0)+(d.favorites.includes(t.id)?-5:0);}
 function catalog(view){let l=titles.filter(t=>view==="filmes"?t.kind==="movie":view==="series"?t.kind==="series":view==="minha-lista"?pdata().favorites.includes(t.id):true);let query=document.getElementById("query")?.value||"";if(selectedGenre!=="Todos")l=l.filter(x=>x.genre===selectedGenre);if(query)l=l.filter(x=>(x.name+" "+x.genre+" "+x.description).toLowerCase().includes(query.toLowerCase()));return l;}
 function gallery(view){let titleMap={filmes:"Filmes",series:"Séries","minha-lista":"Minha Lista",explorar:"Explorar o catálogo"};let genres=["Todos",...new Set(titles.map(t=>t.genre))];let preserved=window.__searchValue||"";return '<div class="content"><div class="sectionheader"><div class="eyebrow">MORILLA FLIX</div><h1 style="font:900 clamp(34px,5vw,54px) Outfit;margin:7px 0">'+safe(titleMap[view])+'</h1></div><div class="searchbar"><input id="query" type="search" autocomplete="off" placeholder="Busque pelo nome, gênero ou descrição..." value="'+safe(preserved)+'" aria-label="Buscar filmes e séries"></div><div class="filterrow">'+genres.map(g=>'<button class="filter '+(selectedGenre===g?"active":"")+'" data-genre="'+safe(g)+'">'+safe(g)+'</button>').join("")+'</div><div id="catalogGrid"></div></div>';}
@@ -105,6 +146,7 @@ if(el.id==="retryCatalog"){refresh();return;}
 if(el.dataset.slide!==undefined){featuredIndex=Number(el.dataset.slide);render();return;}
 if(el.dataset.nav){navigate(el.dataset.nav);return;}
 if(el.dataset.title){openDetails(el.dataset.title);return;}
+if(el.dataset.tmdb){tmdbDetails(el.dataset.tmdb);return;}
 if(el.dataset.watch){play(el.dataset.watch);return;}
 if(el.dataset.episode){let e=episodes.find(x=>x.id===el.dataset.episode);if(e)play(e.title_id,e.id);return;}
 if(el.dataset.favorite){favorite(el.dataset.favorite);return;}
@@ -128,4 +170,5 @@ if(form.id==="titleForm")await saveEntity(form,"titles");if(form.id==="episodeFo
 overlay.addEventListener("click",e=>{if(e.target.id==="modalWrap")closeModal();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
 refresh();
+loadTmdb();
 </script></body></html>
