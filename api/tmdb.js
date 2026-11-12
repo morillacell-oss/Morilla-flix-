@@ -43,7 +43,15 @@ module.exports = async function handler(req, res) {
   }
 
   const category = typeof req.query.category === "string" ? req.query.category : "trending";
-  const endpoint = endpoints[category];
+  let endpoint = endpoints[category];
+  if (category === "trailer") {
+    const id = String(req.query.id || "");
+    const media = req.query.media === "tv" ? "tv" : req.query.media === "movie" ? "movie" : "";
+    if (!media || !/^[1-9][0-9]{0,8}$/.test(id)) {
+      return res.status(400).json({ error: "ID ou tipo de conteúdo inválido." });
+    }
+    endpoint = "/3/" + media + "/" + id + "/videos";
+  }
   if (!endpoint) return res.status(400).json({ error: "Categoria inválida." });
 
   const query = typeof req.query.q === "string" ? req.query.q.trim().slice(0, 80) : "";
@@ -52,7 +60,7 @@ module.exports = async function handler(req, res) {
   }
 
   const target = new URL("https://api.themoviedb.org" + endpoint);
-  target.searchParams.set("language", "pt-BR");
+  target.searchParams.set("language", category === "trailer" ? "en-US" : "pt-BR");
   if (!token) target.searchParams.set("api_key", apiKey);
   target.searchParams.set("page", "1");
   if (category === "search") {
@@ -79,6 +87,21 @@ module.exports = async function handler(req, res) {
     }
 
     const json = await upstream.json();
+    if (category === "trailer") {
+      const trailers=(Array.isArray(json.results)?json.results:[])
+        .filter(v=>v.site==="YouTube" && ["Trailer","Teaser"].includes(v.type)
+          && typeof v.key==="string" && /^[a-zA-Z0-9_-]{11}$/.test(v.key))
+        .sort((a,b)=>Number(b.official===true)-Number(a.official===true)
+          ||Number(b.type==="Trailer")-Number(a.type==="Trailer"))
+        .slice(0,4).map(v=>({
+          key:v.key,
+          title:String(v.name||"Trailer").slice(0,130),
+          official:v.official===true,
+          kind:v.type
+        }));
+      res.setHeader("Cache-Control","public, s-maxage=600, stale-while-revalidate=900");
+      return res.status(200).json({enabled:true, demo:!commercialLicensed, provider:"TMDB", trailers});
+    }
     const results = (Array.isArray(json.results) ? json.results : [])
       .filter(item => (item.media_type || (category === "series" ? "tv" : "movie")) !== "person")
       .slice(0, 20).map(item => ({
