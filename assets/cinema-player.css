@@ -1,0 +1,106 @@
+
+/* MORILLA FLIX • Cinema Player / v4 */
+:root{--cinema-red:#e50914}
+body:has(.cinema-overlay){overflow:hidden}
+.cinema-overlay{position:fixed;inset:0;z-index:100;background:#000;overflow-y:auto;overscroll-behavior:contain;color:#fff;animation:cinema-appear .22s ease-out}
+@keyframes cinema-appear{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:scale(1)}}
+.cinema-shell{min-height:100%;display:flex;flex-direction:column}
+.cinema-header{position:sticky;top:0;z-index:4;padding:13px clamp(14px,3.8vw,65px);height:auto;min-height:68px;display:flex;align-items:center;gap:16px;background:linear-gradient(180deg,#050505 70%,rgba(5,5,5,.9));border-bottom:1px solid #ffffff1e}
+.cinema-back{height:37px;min-width:37px;border:1px solid #45454d;border-radius:10px;color:#fff;background:#1d1d21;font-size:23px;display:grid;place-items:center}
+.cinema-back:hover{background:#303039;border-color:#9f232b}
+.cinema-brand{font:900 19px/1 Outfit,sans-serif;letter-spacing:-.6px;color:#fff}
+.cinema-brand strong{color:var(--cinema-red)}
+.cinema-heading{margin-left:6px;min-width:0;overflow:hidden}
+.cinema-heading strong{font:800 14px Outfit,sans-serif;display:block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.cinema-heading small{display:block;font:500 11px "DM Sans",sans-serif;color:#a4a4af;margin-top:4px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+.cinema-label{margin-left:auto;display:flex;align-items:center;gap:7px;border-radius:99px;background:#131316;border:1px solid #38383f;padding:8px 11px;color:#e0e0e6;font:700 10px Outfit,sans-serif;white-space:nowrap}
+.cinema-label i{height:6px;width:6px;border-radius:50%;background:#17cf7b;display:block;box-shadow:0 0 9px #19bd72a0}
+.cinema-stage{width:min(100%,1520px);margin:0 auto;background:#030303;position:relative}
+.cinema-screen{position:relative;aspect-ratio:16/9;width:100%;min-height:240px;max-height:calc(100dvh - 105px);background:#000;display:flex;align-items:center;justify-content:center}
+.cinema-screen video,.cinema-screen iframe{width:100%;height:100%;display:block;background:#000;border:0;object-fit:contain}
+.cinema-screen video{outline:none}
+.cinema-screen video::cue{font:700 21px/1.3 "DM Sans",sans-serif;background:#0009;color:#fff}
+.cinema-error{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;background:#08080bea}
+.cinema-error svg{color:#e50914}
+.cinema-error h3{font:800 23px Outfit,sans-serif;margin:0}
+.cinema-error p{max-width:390px;color:#b9b9c1;font-size:13px;line-height:1.6;margin:0}
+.cinema-error .btn{margin:2px}
+.cinema-error[hidden]{display:none}
+.cinema-resume{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);background:#121218d9;border:1px solid #fff4;border-radius:14px;box-shadow:0 14px 50px #000d;padding:20px 24px;max-width:85%;display:flex;flex-direction:column;align-items:center;gap:11px;text-align:center}
+.cinema-resume[hidden]{display:none}
+.cinema-resume strong{font:800 16px Outfit,sans-serif}
+.cinema-resume p{color:#c7c7d1;font-size:12px;margin:0}
+.cinema-resume .actions{justify-content:center}
+.cinema-controls{padding:15px clamp(15px,3.9vw,60px);display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:#101013;border-top:1px solid #28282e;border-bottom:1px solid #222227}
+.cinema-controls .btn{font-size:12px;min-height:36px;border-radius:7px;padding:7px 13px;background:#222229}
+.cinema-controls .btn.primary{background:var(--cinema-red)}
+.cinema-controls .btn.outline{background:transparent;border:1px solid #44444b}
+.cinema-controls .spacer{flex:1}
+.cinema-details{width:min(100%,1250px);padding:24px clamp(15px,4vw,60px) 90px;margin:0 auto}
+.cinema-kicker{display:flex;align-items:center;gap:9px;color:#fb6472;font:900 11px Outfit,sans-serif;letter-spacing:1.5px}
+.cinema-kicker:before{content:"";height:2px;width:23px;background:#e50914}
+.cinema-details h2{font:900 clamp(26px,3.5vw,42px)/1.05 Outfit,sans-serif;margin:13px 0 9px;letter-spacing:-1px}
+.cinema-details .cinema-meta{display:flex;flex-wrap:wrap;gap:11px;color:#b1b1ba;font:700 11px Outfit,sans-serif}
+.cinema-description{color:#d1d1d6;line-height:1.7;max-width:780px;font-size:13px;margin:16px 0}
+.cinema-credit{font-size:11px;color:#83838c;line-height:1.6;max-width:900px}
+.cinema-episodes{margin:24px 0}
+.cinema-episodes h3{font:800 21px Outfit,sans-serif;margin:0 0 13px}
+.cinema-episode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.cinema-episode{display:flex;gap:12px;align-items:center;text-align:left;padding:13px;border-radius:11px;background:#121215;border:1px solid #333339;color:#fff}
+.cinema-episode.active{border-color:#db1c2b;background:#251015}
+.cinema-episode:hover{border-color:#c92b37;background:#1e171b}
+.cinema-episode b{font:900 19px Outfit;color:#ed2838;min-width:29px}
+.cinema-episode strong{font:800 13px Outfit;display:block}
+.cinema-episode small{font:500 11px "DM Sans";color:#aeabb4;line-height:1.5;display:block;margin-top:5px}
+.cinema-episode .ep-play{margin-left:auto;color:#fff;background:#e50914;display:grid;place-items:center;height:28px;width:28px;border-radius:50%;flex:0 0 28px}
+.cinema-upnext{margin-top:28px;border-top:1px solid #333337;padding:24px 0}
+.cinema-upnext h3{font:800 20px Outfit;margin:0 0 16px}
+.cinema-upnext .shelf{grid-auto-columns:clamp(164px,20vw,248px)}
+/* Watch buttons for playable items only */
+.movie{isolation:isolate}
+.movie .poster-open{position:absolute;inset:0;z-index:3;background:transparent;border:0;border-radius:inherit;display:block;width:100%;height:100%;cursor:pointer}
+.movie .poster-open:focus-visible{outline:3px solid #f32938;outline-offset:-4px}
+.movie .poster-play{position:absolute;right:11px;bottom:14px;z-index:5;background:#e50914;color:#fff;border:1px solid #f6545e;border-radius:50%;width:38px;height:38px;box-shadow:0 4px 17px #000b;display:grid;place-items:center;font-size:14px;padding-left:4px;opacity:.98;transition:transform .18s,background .18s}
+.movie .poster-play:hover,.movie .poster-play:focus-visible{transform:scale(1.08);background:#ff2533}
+.movie .details{padding-right:55px!important}
+.movie .poster-play:disabled{display:none}
+.tmdb-movie{position:relative}
+.tmdb-movie .details{padding-right:12px!important}
+.watch-deck{margin:9px 0 29px;position:relative;overflow:hidden;border-radius:15px;border:1px solid #393035;background:#131115;isolation:isolate;min-height:240px;display:flex;align-items:end}
+.watch-deck-image{position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center 38%;filter:saturate(1.15)}
+.watch-deck:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#080809 0%,#080809e8 43%,#0004 100%),linear-gradient(0deg,#0008,transparent 80%)}
+.watch-deck-content{padding:34px;max-width:560px}
+.watch-deck .eyebrow{font-size:11px}
+.watch-deck h2{font:900 clamp(28px,3.4vw,45px)/1 Outfit;margin:13px 0}
+.watch-deck p{color:#d1d1d7;font-size:13px;line-height:1.65}
+.watch-deck .btn.red{margin-top:9px}
+.tmdb-credits{margin-top:25px!important}
+@media(max-width:750px){
+.cinema-overlay{padding-bottom:env(safe-area-inset-bottom)}
+.cinema-header{min-height:56px;padding:8px 11px;gap:8px}
+.cinema-brand{font-size:14px;white-space:nowrap}
+.cinema-heading strong{font-size:12px}
+.cinema-heading small{font-size:10px}
+.cinema-label{font-size:9px;padding:7px}
+.cinema-back{min-width:33px;height:33px;font-size:19px}
+.cinema-screen{min-height:190px;max-height:min(75dvh,640px)}
+.cinema-controls{padding:12px;gap:7px}
+.cinema-controls .btn{font-size:11px;padding:8px 10px}
+.cinema-details{padding:22px 17px 80px}
+.cinema-details h2{font-size:26px}
+.cinema-episode-grid{grid-template-columns:1fr}
+.movie .poster-play{width:31px;height:31px;font-size:12px;right:6px;bottom:8px}
+.movie .details{padding-right:40px!important}
+.watch-deck{min-height:245px;border-radius:12px;margin:5px 0 27px}
+.watch-deck:after{background:linear-gradient(0deg,#050505 0%,#070608f5 36%,#0005 100%)}
+.watch-deck-image{background-position:60% 12%}
+.watch-deck-content{padding:75px 17px 20px}
+.watch-deck h2{font-size:29px}
+.watch-deck p{font-size:11px}
+.watch-deck .btn.red{width:100%}
+}
+@media(orientation:landscape) and (max-height:520px){
+.cinema-header{position:relative}
+.cinema-screen{height:calc(100dvh - 64px);max-height:none;aspect-ratio:auto}
+}
+@media(prefers-reduced-motion:reduce){.cinema-overlay{animation:none}}
