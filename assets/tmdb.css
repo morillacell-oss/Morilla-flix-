@@ -1,0 +1,18 @@
+/* Complemento visual ativado somente quando a integração TMDB licenciada responder. */
+.tmdb-hero .heroimage{background-position:66% 22%!important}
+.tmdb-hero .herotitle{font-size:clamp(44px,6vw,89px);max-width:660px}
+.tmdb-shelf .movie .thumb{object-position:center 28%}
+.tmdb-credits{display:flex;gap:20px;align-items:center;margin:12px 0 45px;padding:18px 20px;border-top:1px solid #28282d;border-bottom:1px solid #28282d;background:#0b0b0d}
+.tmdb-credits img{width:90px;max-width:none;height:auto;display:block}
+.tmdb-credits p{margin:0;color:#a9a9b0;font-size:12px;line-height:1.65}
+.tmdb-details>img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:11px;margin:10px 0 18px}
+.tmdb-details>h2{font:900 clamp(28px,4vw,44px) Outfit,sans-serif;margin:0 0 8px}
+.tmdb-details>p{color:#d9d9df;line-height:1.65}
+.tmdb-details .btn{margin-top:15px}
+@media(max-width:700px){
+ .tmdb-hero .herotitle{font-size:clamp(39px,9.6vw,56px)}
+ .tmdb-hero .heroimage{background-position:55% 18%!important}
+ .tmdb-credits{gap:12px;padding:13px 10px;margin-bottom:30px}
+ .tmdb-credits img{width:69px}
+ .tmdb-credits p{font-size:10px}
+}
